@@ -1,42 +1,87 @@
-# AzerothCore - Magic Rooster Starter Mounts
+# AzerothCore – Magic Rooster Starter Mounts
 
-This module makes the Magic Rooster the only starter mount:
-- All new characters start with the Magic Rooster Egg (item 46778).
-- Class mount spells are removed from new characters (paladin/warlock).
-- Magic Rooster tooltip shows 100% with the provided DBC patch.
+This is a data only AzerothCore module.
 
-## Installation
+It makes the Magic Rooster the only starter mount:
 
-1) Apply the SQL to the world database:
-   - `data/sql/db-world/magic_rooster_mounts.sql`
+* All new characters start with the Magic Rooster Egg (item 46778)
+* Class mount spells are removed from new characters (paladin and warlock)
+* Magic Rooster tooltip shows 100 percent speed using a DBC patch
 
-2) Server DBC (for speed + spell data):
-   - Copy `patch-contents/dbc/Spell.dbc` to your server `DataDir/dbc/Spell.dbc`.
-   - `DataDir` is defined in `worldserver.conf` (example: `/data/wow335`).
+No server code and no core patches are required.
 
-3) Client DBC (for tooltip text):
-   - Copy `patch-9.MPQ` to the client `World of Warcraft/Data/` folder.
-   - If you use locale MPQs, rename to `patch-<locale>-9.MPQ` (e.g. `patch-enUS-9.MPQ`) and place it under `World of Warcraft/Data/<locale>/`.
-   - Alternative: use loose DBC by copying `patch-contents/DBFilesClient/Spell.dbc` to:
-     - `World of Warcraft/Data/DBFilesClient/Spell.dbc` and/or
-     - `World of Warcraft/Data/<locale>/DBFilesClient/Spell.dbc`
+## Server Installation
 
-4) Clear client cache:
-   - Delete `World of Warcraft/Cache/` (or at least `Cache/WDB`).
+1. SQL import (world database)
 
-5) Restart worldserver so it reloads the DBC.
-
-## Optional: remove already learned class mounts
-
-If you want to remove class mounts from existing characters:
+Apply the SQL file to your world database:
 
 ```
-DELETE FROM character_spell WHERE spell IN (23161, 23214, 34767);
+sql/world/magic_rooster_mounts.sql
 ```
 
-## Files
+2. Server DBC (spell data and speed)
 
-- `data/sql/db-world/magic_rooster_mounts.sql`
-- `patch-contents/dbc/Spell.dbc`
-- `patch-contents/DBFilesClient/Spell.dbc`
-- `patch-9.MPQ`
+Copy the server DBC file to your DataDir:
+
+```
+data/client/patch-contents/dbc/Spell.dbc
+```
+
+Destination example:
+
+```
+<DataDir>/dbc/Spell.dbc
+```
+
+DataDir is defined in worldserver.conf.
+
+Restart worldserver after copying.
+
+## Client Installation
+
+Copy the MPQ to the client data directory:
+
+```
+data/client/patch-9.MPQ
+```
+
+Destination:
+
+```
+World of Warcraft/Data/
+```
+
+If using locale MPQs, rename accordingly, for example:
+
+```
+patch-enUS-9.MPQ
+```
+
+and place it under:
+
+```
+World of Warcraft/Data/enUS/
+```
+
+## Client Cache
+
+After installing client files, delete:
+
+```
+World of Warcraft/Cache/
+```
+
+or at least:
+
+```
+Cache/WDB
+```
+
+## Module Layout
+
+```
+data/client/        Client DBC and MPQ files
+
+```
+
