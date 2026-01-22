@@ -8,4 +8,6 @@ DELETE FROM `playercreateinfo_item`
 WHERE `itemid` IN (46778, 49290);
 
 INSERT INTO `playercreateinfo_item` (`race`, `class`, `itemid`, `amount`, `Note`)
-VALUES (0, 0, 46778, 1, 'Magic Rooster Egg');
+SELECT `race`, `class`, 46778, 1, 'Magic Rooster Egg'
+FROM `playercreateinfo`;
+
