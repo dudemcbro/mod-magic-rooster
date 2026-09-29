@@ -7,10 +7,15 @@
 DELETE FROM `playercreateinfo_item`
 WHERE `itemid` = 46778 AND `Note` = 'Magic Rooster Egg';
 
--- Stock requirements: level 60, Riding (762) 150
+-- Stock requirements (level 60, Riding (762) 150) and description
 UPDATE `item_template`
 SET
   `RequiredLevel` = 60,
   `RequiredSkill` = 762,
-  `RequiredSkillRank` = 150
+  `RequiredSkillRank` = 150,
+  `description` = '"Teaches you how to summon this mount. This is a very fast mount."'
 WHERE `entry` = 46778;
+
+-- Unbind the speed script
+DELETE FROM `spell_script_names`
+WHERE `ScriptName` = 'spell_magic_rooster_speed';
