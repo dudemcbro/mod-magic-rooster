@@ -1,7 +1,9 @@
-data/sql/db-world/magic_rooster_mounts.sql
 .gitignore
+CMakeLists.txt
 LICENSE
-patch-9.MPQ
-patch-contents/dbc/Spell.dbc
-patch-contents/DBFilesClient/Spell.dbc
 README.md
+data/client/patch-9.MPQ
+inventory.tracked.txt
+sql/world/magic_rooster_mounts.sql
+sql/world/magic_rooster_rollback.sql
+src/mod_magic_rooster.cpp
