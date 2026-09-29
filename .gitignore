@@ -4,3 +4,14 @@ build/
 *.swo
 *.log
 *.bak
+
+# Client patch output. It is built locally from your own Spell.dbc by
+# scripts/build_client_patch.py and holds Blizzard data, so never commit it.
+data/client/
+*.MPQ
+*.mpq
+*.dbc
+
+# Python
+__pycache__/
+*.pyc
