@@ -11,9 +11,9 @@ namespace
 class MagicRoosterSpeed final : public PlayerScript
 {
 public:
-    MagicRoosterSpeed() : PlayerScript("MagicRoosterSpeed") {}
+    MagicRoosterSpeed() : PlayerScript("MagicRoosterSpeed", { PLAYERHOOK_ON_UPDATE }) {}
 
-    void OnUpdate(Player* player, uint32 /*diff*/) override
+    void OnPlayerUpdate(Player* player, uint32 /*diff*/) override
     {
         if (!player || !player->IsMounted())
             return;
@@ -31,11 +31,10 @@ public:
         if (!rooster)
             return;
 
+        // SetSpeed() stores the rate and sends the forced speed change to the client.
+        // (UpdateSpeed() would recompute the rate from auras and undo the change.)
         if (player->GetSpeedRate(MOVE_RUN) < ROOSTER_RUN_RATE)
-        {
-            player->SetSpeedRate(MOVE_RUN, ROOSTER_RUN_RATE);
-            player->UpdateSpeed(MOVE_RUN, true);
-        }
+            player->SetSpeed(MOVE_RUN, ROOSTER_RUN_RATE, true);
     }
 };
 
