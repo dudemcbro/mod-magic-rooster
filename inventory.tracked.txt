@@ -1,7 +1,0 @@
-data/sql/db-world/magic_rooster_mounts.sql
-.gitignore
-LICENSE
-patch-9.MPQ
-patch-contents/dbc/Spell.dbc
-patch-contents/DBFilesClient/Spell.dbc
-README.md
