@@ -2,36 +2,30 @@
 """Build the Magic Rooster client patch from your own WotLK 3.3.5a Spell.dbc.
 
 The module does not ship any Blizzard files. This script reads a Spell.dbc
-that you supply (--dbc-in), changes the Magic Rooster records so the client
-tooltips match the server (a 60% ground mount), and writes:
+that you supply (--dbc-in), fixes the Magic Rooster spell tooltip, and writes:
 
   * the patched Spell.dbc (--dbc-out), and
   * a single-file MPQ that holds it as DBFilesClient\\Spell.dbc (--mpq-out),
     ready to copy into the client's Data folder.
 
-Changes made to Spell.dbc (3.3.5a build 12340 layout, 234 fields):
+In the stock client the learned spell 65917 has no speed effect of its own
+(the server casts the real mount aura, 66122, through spell_linked_spell), so
+its tooltip shows no mount speed. This script gives 65917 the same mounted
+speed aura the rooster really has (100%, unchanged), so the tooltip reads
+correctly. Changes to Spell.dbc (3.3.5a build 12340 layout, 234 fields):
 
-  65917 Magic Rooster (the learned spell, same fields as the patch the module
-  used to ship, with the speed lowered from 100% to 60%):
+  65917 Magic Rooster:
     - effect 1 and 2 implicit target A: 0 -> 1 (TARGET_UNIT_CASTER)
     - effect 2 aura: 4 (DUMMY) -> 32 (MOD_INCREASE_MOUNTED_SPEED)
-    - effect 2 base points: -1 -> 59 (tooltip value $s2 = 60)
+    - effect 2 base points: -1 -> 99 (tooltip value $s2 = 100)
 
-  66122, 66123, 66124 Magic Rooster (the mount auras the server applies):
-    - effect 2 base points: 99 -> 59, so the buff tooltip
-      "Increases speed by $s2%." reads 60%
-
-  65917, 66122, 66123, 66124 enUS description: the sentence
-  "  This is a very fast mount." is removed, as on Blizzard's own 60% mounts.
-  Other locales are left as they are.
-
-The server does not read the client Spell.dbc. The speed itself comes from the
-module's server script (src/mod_magic_rooster.cpp); this patch only keeps the
-client text in line with it.
+The rooster's speed itself is not changed. The server does not read the client
+Spell.dbc; mount speeds are whatever your server gives them.
 
 Only one Spell.dbc is used by the client, taken from the highest priority MPQ.
-If another module also patches Spell.dbc, run the patchers one after another
-(use one patcher's output as the next one's --dbc-in) and install one MPQ.
+If another tool also patches Spell.dbc (for example a mount speed profile),
+run the patchers one after another (use one patcher's output as the next
+one's --dbc-in) and install one MPQ.
 """
 from __future__ import annotations
 
@@ -40,8 +34,8 @@ import struct
 import sys
 from pathlib import Path
 
-# Keep in sync with MAGIC_ROOSTER_SPEED_PCT in src/mod_magic_rooster.cpp.
-SPEED_PCT = 60
+# The rooster's stock mounted speed, in percent.
+SPEED_PCT = 100
 
 # Spell.dbc 3.3.5a layout
 FIELD_COUNT = 234
@@ -52,20 +46,12 @@ F_EFFECT_BASE_POINTS = (80, 81, 82)
 F_IMPLICIT_TARGET_A = (86, 87, 88)
 F_EFFECT_AURA = (95, 96, 97)
 F_NAME_ENUS = 136
-F_DESCRIPTION_ENUS = 170
 
 TARGET_UNIT_CASTER = 1
 SPELL_AURA_DUMMY = 4
 SPELL_AURA_MOD_INCREASE_MOUNTED_SPEED = 32
 
 SPELL_MAGIC_ROOSTER = 65917
-MOUNT_AURAS = (66122, 66123, 66124)
-
-STOCK_DESCRIPTION = (
-    "Summons and dismisses a rideable Magic Rooster.  No, seriously.  "
-    "This is a very fast mount."
-)
-NEW_DESCRIPTION = "Summons and dismisses a rideable Magic Rooster.  No, seriously."
 
 # (spell id, field index, stock value, new value)
 FIELD_CHANGES = [
@@ -73,11 +59,7 @@ FIELD_CHANGES = [
     (SPELL_MAGIC_ROOSTER, F_IMPLICIT_TARGET_A[1], 0, TARGET_UNIT_CASTER),
     (SPELL_MAGIC_ROOSTER, F_EFFECT_AURA[1], SPELL_AURA_DUMMY, SPELL_AURA_MOD_INCREASE_MOUNTED_SPEED),
     (SPELL_MAGIC_ROOSTER, F_EFFECT_BASE_POINTS[1], -1, SPEED_PCT - 1),
-] + [
-    (spell_id, F_EFFECT_BASE_POINTS[1], 99, SPEED_PCT - 1) for spell_id in MOUNT_AURAS
 ]
-
-DESCRIPTION_SPELLS = (SPELL_MAGIC_ROOSTER,) + MOUNT_AURAS
 
 
 class Dbc:
@@ -115,16 +97,6 @@ class Dbc:
         end = self.strings.index(b"\0", start)
         return self.strings[start:end].decode("utf-8")
 
-    def set_string(self, spell_id: int, field: int, text: str) -> None:
-        raw = text.encode("utf-8")
-        found = self.strings.find(b"\0" + raw + b"\0")
-        if found >= 0:
-            offset = found + 1
-        else:
-            offset = len(self.strings)
-            self.strings += raw + b"\0"
-        struct.pack_into("<I", self.records, self._pos(spell_id, field), offset)
-
     def write(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("wb") as out:
@@ -140,10 +112,9 @@ class Dbc:
 
 
 def patch_spell_dbc(dbc: Dbc, force: bool) -> None:
-    for spell_id in DESCRIPTION_SPELLS:
-        name = dbc.get_string(spell_id, F_NAME_ENUS)
-        if name and name != "Magic Rooster":
-            raise SystemExit(f"Spell {spell_id} is named {name!r}, expected 'Magic Rooster'")
+    name = dbc.get_string(SPELL_MAGIC_ROOSTER, F_NAME_ENUS)
+    if name and name != "Magic Rooster":
+        raise SystemExit(f"Spell {SPELL_MAGIC_ROOSTER} is named {name!r}, expected 'Magic Rooster'")
 
     for spell_id, field, stock, new in FIELD_CHANGES:
         current = dbc.get(spell_id, field)
@@ -156,15 +127,6 @@ def patch_spell_dbc(dbc: Dbc, force: bool) -> None:
             dbc.set(spell_id, field, new)
             print(f"  spell {spell_id} field {field}: {current} -> {new}")
 
-    for spell_id in DESCRIPTION_SPELLS:
-        current = dbc.get_string(spell_id, F_DESCRIPTION_ENUS)
-        if current == NEW_DESCRIPTION:
-            continue
-        if current != STOCK_DESCRIPTION:
-            print(f"  spell {spell_id}: enUS description is not the stock text, left unchanged")
-            continue
-        dbc.set_string(spell_id, F_DESCRIPTION_ENUS, NEW_DESCRIPTION)
-        print(f"  spell {spell_id}: enUS description updated")
 
 
 # MPQ writer (pure Python, same approach as the other client patch builders

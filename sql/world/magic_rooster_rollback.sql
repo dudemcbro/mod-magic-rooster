@@ -16,6 +16,6 @@ SET
   `description` = '"Teaches you how to summon this mount. This is a very fast mount."'
 WHERE `entry` = 46778;
 
--- Unbind the speed script
+-- Remove the speed script binding, if an earlier version of the module added it
 DELETE FROM `spell_script_names`
 WHERE `ScriptName` = 'spell_magic_rooster_speed';
