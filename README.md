@@ -62,12 +62,19 @@ SQL.
 ### 3. Start worldserver
 
 On start, worldserver imports the SQL in
-[`data/sql/db-world/`](data/sql/db-world/) into the world database (the module
+[`data/sql/world/`](data/sql/world/) into the world database (the module
 has no characters or auth database SQL), as long as `Updates.EnableDatabases`
 in `worldserver.conf` includes the world database (flag 4, included in the
 default of 7). It records each file in the world database's `updates` table
 and applies it again only when the file changes. The import runs before the
 world data loads, so this one start is enough.
+
+The folder is called `world` rather than the skeleton module's `db-world` on
+purpose: cores built before AzerothCore's April 2026 change to module SQL
+folder matching
+([azerothcore-wotlk#25372](https://github.com/azerothcore/azerothcore-wotlk/pull/25372))
+only import folders named exactly `world`, `characters` and `auth`, and newer
+cores import both.
 
 The SQL:
 
@@ -82,11 +89,11 @@ The SQL:
 ### Applying the SQL by hand
 
 If `Updates.EnableDatabases` leaves out the world database, or you do not want
-to rebuild, apply the files in `data/sql/db-world/` by hand in name order
+to rebuild, apply the files in `data/sql/world/` by hand in name order
 (currently there is one), then restart worldserver:
 
 ```sh
-mysql -u <user> -p acore_world < mod-magic-rooster/data/sql/db-world/mod_magic_rooster_mounts.sql
+mysql -u <user> -p acore_world < mod-magic-rooster/data/sql/world/mod_magic_rooster_mounts.sql
 ```
 
 Use your own world database name if it is not `acore_world`. The file can be
@@ -161,7 +168,7 @@ script as `--dbc-in`, and install only the MPQ this script writes.
    giving the egg to new characters:
 
    ```sh
-   mysql -u <user> -p acore_world < mod-magic-rooster/data/sql/rollback/db-world/mod_magic_rooster_rollback.sql
+   mysql -u <user> -p acore_world < mod-magic-rooster/data/sql/rollback/world/mod_magic_rooster_rollback.sql
    ```
 
    Files in `data/sql/rollback/` are never imported automatically. If
@@ -190,9 +197,9 @@ git pull
 ```
 
 If the update changed anything in `src/`, re-run CMake and rebuild. Then
-restart worldserver; it applies the files in `data/sql/db-world/` again if
+restart worldserver; it applies the files in `data/sql/world/` again if
 they changed. If you apply the SQL by hand, apply the files in
-`data/sql/db-world/` again in name order and restart worldserver. If
+`data/sql/world/` again in name order and restart worldserver. If
 `scripts/build_client_patch.py` changed, rebuild and reinstall the client
 patch as well.
 
@@ -224,8 +231,8 @@ version, let the file run so it removes the old script binding.
 ## Module Layout
 
 ```
-data/sql/db-world/                World database SQL, imported by worldserver
-data/sql/rollback/db-world/       World database rollback, applied by hand
+data/sql/world/                World database SQL, imported by worldserver
+data/sql/rollback/world/       World database rollback, applied by hand
 scripts/build_client_patch.py     Builds the client Spell.dbc and MPQ from your own Spell.dbc
 src/mod_magic_rooster_loader.cpp  Empty script loader, needed for the SQL import
 ```
