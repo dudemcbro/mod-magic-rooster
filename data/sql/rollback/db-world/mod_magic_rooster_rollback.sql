@@ -1,7 +1,8 @@
 -- Magic Rooster starter mount rollback (acore_world)
--- Restores the stock AzerothCore values changed by magic_rooster_mounts.sql.
--- The playercreateinfo_spell_custom rows it deletes are not stock rows, so
--- there is nothing to restore there.
+-- Restores the stock AzerothCore values changed by mod_magic_rooster_mounts.sql
+-- in data/sql/db-world/. The playercreateinfo_spell_custom rows it deletes are
+-- not stock rows, so there is nothing to restore there.
+-- Apply this file by hand: worldserver never imports data/sql/rollback/.
 
 -- Stop granting the egg to new characters
 DELETE FROM `playercreateinfo_item`
